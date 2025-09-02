@@ -11,11 +11,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { dashboard } from '@/routes';
-import tasks from '@/routes/tasks';
 import difyWorkflows from '@/routes/dify-workflows';
+import tasks from '@/routes/tasks';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, ListTodo, Workflow } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, ListTodo, Menu, Search, Workflow } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {

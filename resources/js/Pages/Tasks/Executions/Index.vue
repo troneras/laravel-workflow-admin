@@ -1,5 +1,8 @@
 <template>
-  <div class="container mx-auto py-8">
+  <Head title="Task Executions" />
+
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="container mx-auto py-8">
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold">Task Executions</h1>
@@ -74,11 +77,14 @@
         </Button>
       </nav>
     </div>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3'
+import AppLayout from '@/layouts/AppLayout.vue'
+import { Head, router } from '@inertiajs/vue3'
+import type { BreadcrumbItem } from '@/types'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -132,6 +138,21 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Tasks',
+    href: taskRoutes.index().url,
+  },
+  {
+    title: props.task.name,
+    href: taskRoutes.show(props.task.id).url,
+  },
+  {
+    title: 'Executions',
+    href: taskRoutes.executions.index(props.task.id).url,
+  },
+]
 
 const runningExecutions = ref(new Set<number>())
 let pollingInterval: NodeJS.Timeout | null = null

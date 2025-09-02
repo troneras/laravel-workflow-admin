@@ -1,5 +1,8 @@
 <template>
-  <div class="container mx-auto py-8 max-w-2xl">
+  <Head title="Edit Task" />
+
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="container mx-auto py-8 max-w-2xl">
     <div class="mb-6">
       <h1 class="text-3xl font-bold">Edit Task</h1>
     </div>
@@ -96,12 +99,15 @@
         </form>
       </CardContent>
     </Card>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { useForm } from '@inertiajs/vue3'
+import AppLayout from '@/layouts/AppLayout.vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import type { BreadcrumbItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -135,6 +141,21 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Tasks',
+    href: taskRoutes.index().url,
+  },
+  {
+    title: props.task.name,
+    href: taskRoutes.show(props.task.id).url,
+  },
+  {
+    title: 'Edit',
+    href: taskRoutes.edit(props.task.id).url,
+  },
+]
 
 const form = useForm({
   name: props.task.name,

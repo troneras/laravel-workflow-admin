@@ -1,5 +1,8 @@
 <template>
-  <div class="container mx-auto py-8">
+  <Head title="Task Details" />
+
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="container mx-auto py-8">
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold">{{ task.name }}</h1>
@@ -106,10 +109,14 @@
         </CardContent>
       </Card>
     </div>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup lang="ts">
+import AppLayout from '@/layouts/AppLayout.vue'
+import { Head } from '@inertiajs/vue3'
+import type { BreadcrumbItem } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -150,9 +157,20 @@ interface Task {
   executions: TaskExecution[]
 }
 
-defineProps<{
+const props = defineProps<{
   task: Task
 }>()
+
+const breadcrumbs: BreadcrumbItem[] = [
+  {
+    title: 'Tasks',
+    href: taskRoutes.index().url,
+  },
+  {
+    title: props.task.name,
+    href: taskRoutes.show(props.task.id).url,
+  },
+]
 
 const formatDate = (date: string | null) => {
   if (!date) return '-'

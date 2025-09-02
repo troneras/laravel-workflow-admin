@@ -229,42 +229,8 @@ const getStatusVariant = (status: string) => {
 }
 
 const runTask = () => {
-  // Get input data based on task's input schema
-  let inputData: Record<string, any> = {}
-  
-  if (props.task.input_schema) {
-    if (Array.isArray(props.task.input_schema)) {
-      // Handle array format (proper schema definition)
-      for (const field of props.task.input_schema) {
-        if (field.name === 'question' && field.required) {
-          inputData[field.name] = field.default || props.task.description || 'What can you tell me about this?'
-        } else if (field.required) {
-          switch (field.type) {
-            case 'string':
-              inputData[field.name] = field.default || ''
-              break
-            case 'number':
-              inputData[field.name] = field.default || 0
-              break
-            default:
-              inputData[field.name] = field.default || null
-          }
-        }
-      }
-    } else if (typeof props.task.input_schema === 'object') {
-      // Handle object format (current database format)
-      inputData = { ...props.task.input_schema }
-    }
-  }
-  
-  // If no schema but we know this is a QA workflow, provide a question
-  if (Object.keys(inputData).length === 0) {
-    inputData.question = props.task.description || 'What can you tell me about this?'
-  }
-
-  router.post(taskRoutes.executions.store(props.task.id), {
-    input: inputData
-  }, {
+  // No need to send input data anymore - the backend will use the task's predefined input
+  router.post(taskRoutes.executions.store(props.task.id), {}, {
     onSuccess: () => {
       // Start polling for new executions after successful task creation
       setTimeout(() => {

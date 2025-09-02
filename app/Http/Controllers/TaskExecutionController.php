@@ -26,17 +26,13 @@ class TaskExecutionController extends Controller
 
     public function store(Request $request, Task $task)
     {
-        $validated = $request->validate([
-            'input' => 'nullable|array',
-        ]);
+        // Use the task's input schema directly (it's already cast to array)
+        $inputData = $task->input_schema ?? [];
 
-        // Debug: Log what input was received
-        Log::info('TaskExecution store - input received', [
+        Log::info('TaskExecution created', [
             'task_id' => $task->id,
             'task_name' => $task->name,
-            'task_input_schema' => $task->input_schema,
-            'request_input' => $request->input('input'),
-            'validated_input' => $validated['input'] ?? null,
+            'input_data' => $inputData,
         ]);
 
         // Load the task with its workflow
@@ -63,7 +59,7 @@ class TaskExecutionController extends Controller
         $execution = $task->executions()->create([
             'task_execution_id' => (string) Str::uuid(),
             'status' => 'pending',
-            'input' => $validated['input'] ?? [],
+            'input' => $inputData,
             'start_time' => now(),
         ]);
 

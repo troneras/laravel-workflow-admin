@@ -2,7 +2,7 @@
   <Head title="Execution Details" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
-    <div class="container mx-auto py-8">
+    <div class="container mx-auto py-8 max-w-7xl">
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-3xl font-bold">Execution Details</h1>
@@ -16,7 +16,7 @@
       </Button>
     </div>
 
-    <div class="grid gap-6">
+    <div class="grid gap-6 min-w-0">
       <Card>
         <CardHeader>
           <CardTitle>Execution Information</CardTitle>
@@ -55,26 +55,30 @@
         </CardContent>
       </Card>
 
-      <Card v-if="currentExecution.input && Object.keys(currentExecution.input).length > 0">
+      <Card v-if="currentExecution.input && Object.keys(currentExecution.input).length > 0" class="min-w-0">
         <CardHeader>
           <CardTitle>Input Data</CardTitle>
         </CardHeader>
         <CardContent>
-          <pre class="bg-muted p-4 rounded-md overflow-auto text-sm">{{ JSON.stringify(currentExecution.input, null, 2) }}</pre>
+          <div style="overflow-x: auto; width: 100%;">
+            <pre class="bg-muted p-4 rounded-md text-sm" style="white-space: pre; width: max-content;">{{ JSON.stringify(currentExecution.input, null, 2) }}</pre>
+          </div>
         </CardContent>
       </Card>
 
-      <Card v-if="currentExecution.output">
+      <Card v-if="currentExecution.output" class="min-w-0">
         <CardHeader>
           <CardTitle>Output Data</CardTitle>
         </CardHeader>
         <CardContent>
-          <pre class="bg-muted p-4 rounded-md overflow-auto text-sm">{{ JSON.stringify(currentExecution.output, null, 2) }}</pre>
+          <div style="overflow-x: auto; width: 100%;">
+            <pre class="bg-muted p-4 rounded-md text-sm" style="white-space: pre; width: max-content;">{{ JSON.stringify(currentExecution.output, null, 2) }}</pre>
+          </div>
         </CardContent>
       </Card>
 
       <!-- Workflow Execution Timeline -->
-      <Card v-if="groupedNodeEvents && Object.keys(groupedNodeEvents).length > 0">
+      <Card v-if="groupedNodeEvents && Object.keys(groupedNodeEvents).length > 0" class="min-w-0">
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
             <div class="w-2 h-2 bg-primary rounded-full"></div>
@@ -93,7 +97,7 @@
                   </div>
                   <div class="w-0.5 h-8 bg-border mt-2"></div>
                 </div>
-                <div class="flex-1 pb-8">
+                <div class="flex-1 pb-8 min-w-0">
                   <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-blue-700">Workflow Started</h3>
                     <Badge variant="outline" class="text-xs">
@@ -109,8 +113,8 @@
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent class="mt-2">
-                      <div class="bg-muted p-3 rounded-md">
-                        <pre class="text-xs overflow-auto">{{ JSON.stringify(workflowStartEvent.event_data.data.inputs, null, 2) }}</pre>
+                      <div style="overflow-x: auto; width: 100%;">
+                        <pre class="bg-muted p-3 rounded-md text-xs" style="white-space: pre; width: max-content;">{{ JSON.stringify(workflowStartEvent.event_data.data.inputs, null, 2) }}</pre>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -127,7 +131,7 @@
                   </div>
                   <div v-if="!isLastNode(nodeId)" class="w-0.5 h-8 bg-border mt-2"></div>
                 </div>
-                <div class="flex-1 pb-8">
+                <div class="flex-1 pb-8 min-w-0">
                   <div class="flex items-center justify-between mb-2">
                     <h3 class="text-lg font-semibold" :class="getNodeTitleColor(nodeGroup.nodeType)">
                       {{ nodeGroup.title }} Node
@@ -148,7 +152,7 @@
                     </div>
                   </div>
                   
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4 min-w-0">
                     <div class="bg-muted p-3 rounded-md">
                       <h4 class="text-xs font-medium text-muted-foreground mb-1">Started</h4>
                       <p class="text-sm">{{ formatTime(nodeGroup.startedAt) }}</p>
@@ -170,20 +174,20 @@
                         <CpuChipIcon class="h-4 w-4" />
                         AI Processing Details
                       </h4>
-                      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                        <div>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs min-w-0">
+                        <div class="min-w-0">
                           <span class="font-medium text-purple-700">Model:</span>
-                          <p class="text-purple-600 mt-1">{{ nodeGroup.llmData.model_name }}</p>
+                          <p class="text-purple-600 mt-1 truncate">{{ nodeGroup.llmData.model_name }}</p>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                           <span class="font-medium text-purple-700">Tokens:</span>
                           <p class="text-purple-600 mt-1">{{ nodeGroup.llmData.total_tokens }}</p>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                           <span class="font-medium text-purple-700">Cost:</span>
-                          <p class="text-purple-600 mt-1">${{ nodeGroup.llmData.total_price }}</p>
+                          <p class="text-purple-600 mt-1">${{ nodeGroup.llmData.total_price || '0.00' }}</p>
                         </div>
-                        <div>
+                        <div class="min-w-0">
                           <span class="font-medium text-purple-700">Latency:</span>
                           <p class="text-purple-600 mt-1">{{ Math.round(nodeGroup.llmData.latency * 1000) }}ms</p>
                         </div>
@@ -201,8 +205,8 @@
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div class="bg-green-50 border border-green-200 p-3 rounded-md">
-                          <pre class="text-xs overflow-auto text-green-800">{{ JSON.stringify(nodeGroup.inputs, null, 2) }}</pre>
+                        <div style="overflow-x: auto; width: 100%;">
+                          <pre class="bg-green-50 border border-green-200 p-3 rounded-md text-xs text-green-800" style="white-space: pre; width: max-content;">{{ JSON.stringify(nodeGroup.inputs, null, 2) }}</pre>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -215,8 +219,8 @@
                         </div>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <div class="bg-blue-50 border border-blue-200 p-3 rounded-md">
-                          <pre class="text-xs overflow-auto text-blue-800">{{ JSON.stringify(nodeGroup.outputs, null, 2) }}</pre>
+                        <div style="overflow-x: auto; width: 100%;">
+                          <pre class="bg-blue-50 border border-blue-200 p-3 rounded-md text-xs text-blue-800" style="white-space: pre; width: max-content;">{{ JSON.stringify(nodeGroup.outputs, null, 2) }}</pre>
                         </div>
                       </AccordionContent>
                     </AccordionItem>
@@ -233,14 +237,14 @@
                     <CheckIcon class="h-5 w-5 text-green-600" />
                   </div>
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between">
                     <h3 class="text-lg font-semibold text-green-700">Workflow Completed</h3>
                     <Badge variant="outline" class="text-xs">
                       {{ formatDate(workflowFinishedEvent.event_timestamp) }}
                     </Badge>
                   </div>
-                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3 min-w-0">
                     <div class="bg-muted p-3 rounded-md">
                       <h4 class="text-xs font-medium text-muted-foreground mb-1">Total Steps</h4>
                       <p class="text-sm font-semibold">{{ workflowFinishedEvent.event_data.data.total_steps }}</p>
@@ -268,8 +272,8 @@
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent class="mt-2">
-                      <div class="bg-green-50 border border-green-200 p-3 rounded-md">
-                        <pre class="text-xs overflow-auto text-green-800">{{ JSON.stringify(workflowFinishedEvent.event_data.data.outputs, null, 2) }}</pre>
+                      <div style="overflow-x: auto; width: 100%;">
+                        <pre class="bg-green-50 border border-green-200 p-3 rounded-md text-xs text-green-800" style="white-space: pre; width: max-content;">{{ JSON.stringify(workflowFinishedEvent.event_data.data.outputs, null, 2) }}</pre>
                       </div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -280,7 +284,7 @@
         </CardContent>
       </Card>
 
-      <Card v-if="currentExecution.track && currentExecution.track.length > 0">
+      <Card v-if="currentExecution.track && currentExecution.track.length > 0" class="min-w-0">
         <CardHeader>
           <CardTitle>Execution Track (Logs)</CardTitle>
         </CardHeader>
@@ -288,7 +292,9 @@
           <div class="space-y-4">
             <div v-for="(log, index) in currentExecution.track" :key="index" class="border-l-2 border-muted pl-4">
               <div class="font-medium">Step {{ index + 1 }}</div>
-              <pre class="bg-muted p-2 rounded-md overflow-auto text-sm mt-2">{{ JSON.stringify(log, null, 2) }}</pre>
+              <div class="mt-2" style="overflow-x: auto; width: 100%;">
+                <pre class="bg-muted p-2 rounded-md text-sm" style="white-space: pre; width: max-content;">{{ JSON.stringify(log, null, 2) }}</pre>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -497,12 +503,12 @@ const groupedNodeEvents = computed(() => {
       group.outputs = eventData.outputs
       
       // Extract LLM specific data
-      if (eventData.node_type === 'llm' && eventData.process_data?.usage) {
+      if (eventData.node_type === 'llm' && eventData.process_data) {
         group.llmData = {
-          model_name: eventData.process_data.model_name,
-          total_tokens: eventData.process_data.usage.total_tokens,
-          total_price: eventData.process_data.usage.total_price,
-          latency: eventData.process_data.usage.latency
+          model_name: eventData.process_data.model_name || 'Unknown',
+          total_tokens: eventData.process_data.usage?.total_tokens || eventData.process_data.total_tokens || 0,
+          total_price: eventData.process_data.usage?.total_price || eventData.process_data.total_price || '0.00',
+          latency: eventData.process_data.usage?.latency || eventData.process_data.latency || 0
         }
       }
     }

@@ -351,7 +351,7 @@ class DifyService
                 $execution->update([
                     'status' => $mappedStatus,
                     'end_time' => now(),
-                    'duration' => now()->diffInSeconds($startTime),
+                    'duration' => $finishedData['elapsed_time'] ?? now()->diffInSeconds($startTime),
                     'output' => $finishedData['outputs'] ?? [],
                     'tokens' => $finishedData['total_tokens'] ?? 0,
                     'track' => $execution->streamEvents()->get()->toArray(),

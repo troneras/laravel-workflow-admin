@@ -1,11 +1,15 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "casino/ai-orchestrator",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "AI Orchestrator - Intelligent workflow management system for multisite casino operations.",
     "keywords": [
-        "laravel",
-        "framework"
+        "ai",
+        "orchestrator",
+        "workflow",
+        "dify",
+        "casino",
+        "microservice"
     ],
     "license": "MIT",
     "require": {

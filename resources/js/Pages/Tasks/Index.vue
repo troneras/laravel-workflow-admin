@@ -6,37 +6,29 @@
             <div class="container mx-auto max-w-7xl py-8">
                 <!-- Enhanced Header Section -->
                 <div
-                    class="relative mb-8 overflow-hidden rounded-2xl border border-white/20 bg-white shadow-xl dark:border-slate-700/50 dark:bg-slate-800"
+                    class="page-header"
                 >
-                    <div
-                        class="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-indigo-600/5 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-indigo-400/10"
-                    ></div>
-                    <div class="relative p-8">
-                        <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                            <div class="space-y-3">
-                                <div class="flex items-center gap-3">
-                                    <div
-                                        class="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg"
-                                    >
+                    <div class="page-header-gradient"></div>
+                    <div class="page-header-content">
+                        <div class="page-header-layout">
+                            <div class="page-header-info">
+                                <div class="page-header-title-group">
+                                    <div class="page-header-icon">
                                         <Plus class="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <h1
-                                            class="bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-3xl font-bold text-transparent dark:from-white dark:to-gray-200"
-                                        >
-                                            Task Management
-                                        </h1>
-                                        <div class="mt-1 flex items-center gap-2">
-                                            <div class="h-2 w-2 rounded-full bg-blue-500"></div>
+                                        <h1 class="page-title">Task Management</h1>
+                                        <div class="page-subtitle">
+                                            <div class="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></div>
                                             <p class="font-medium text-muted-foreground">Manage and monitor workflow tasks</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-3 sm:flex-row">
+                            <div class="page-actions">
                                 <Button
                                     @click="$inertia.visit(taskRoutes.create())"
-                                    class="bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-200 hover:from-blue-600 hover:to-indigo-700"
+                                    class="btn-gradient shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                 >
                                     <Plus class="mr-2 h-4 w-4" /> Create New Task
                                 </Button>
@@ -46,83 +38,94 @@
                 </div>
 
                 <!-- Enhanced Tasks Table -->
-                <Card class="relative overflow-hidden border-0 bg-white shadow-xl ring-1 ring-gray-100 dark:bg-slate-800 dark:ring-slate-700">
-                    <div
-                        class="absolute inset-0 bg-gradient-to-br from-blue-50/30 via-indigo-50/20 to-purple-50/30 dark:from-blue-900/20 dark:via-indigo-900/15 dark:to-purple-900/20"
-                    ></div>
-                    <div class="relative p-6">
-                        <div class="mb-6 flex items-center gap-3">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+                <Card class="enhanced-card">
+                    <div class="enhanced-card-gradient"></div>
+                    <div class="enhanced-card-header relative p-6">
+                        <div class="enhanced-card-title">
+                            <div class="enhanced-card-icon">
                                 <Plus class="h-4 w-4 text-white" />
                             </div>
                             <div>
-                                <h2 class="text-xl font-semibold">Task Overview</h2>
-                                <p class="text-sm text-muted-foreground">Monitor all your workflow tasks and their current status</p>
+                                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Task Overview</h2>
+                                <p class="text-sm text-muted-foreground mt-1">Monitor all your workflow tasks and their current status</p>
                             </div>
                         </div>
                     </div>
-                    <CardContent class="relative p-0">
-                        <div class="overflow-x-auto">
+                    <CardContent class="enhanced-card-content p-0">
+                        <div class="enhanced-table">
                             <Table>
-                                <TableHeader>
-                                    <TableRow class="border-b border-gray-200 dark:border-slate-700">
-                                        <TableHead class="text-left font-semibold">Task Name</TableHead>
-                                        <TableHead class="text-left font-semibold">Description</TableHead>
-                                        <TableHead class="text-left font-semibold">Workflow</TableHead>
-                                        <TableHead class="text-left font-semibold">Status</TableHead>
-                                        <TableHead class="text-left font-semibold">Last Execution</TableHead>
-                                        <TableHead class="text-right font-semibold">Actions</TableHead>
+                                <TableHeader class="enhanced-table-header">
+                                    <TableRow class="border-b-2 border-gray-200 dark:border-slate-600 bg-gray-50/50 dark:bg-slate-700/50">
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300">Task Name</TableHead>
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300">Description</TableHead>
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300">Workflow</TableHead>
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300">Status</TableHead>
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300">Last Execution</TableHead>
+                                        <TableHead class="enhanced-table-head py-4 px-6 text-xs uppercase tracking-wider font-bold text-gray-700 dark:text-gray-300 text-right">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow
                                         v-for="task in tasks"
                                         :key="task.id"
-                                        class="cursor-pointer border-b border-gray-100 transition-colors hover:bg-gray-50/50 dark:border-slate-700 dark:hover:bg-slate-700/50"
+                                        class="enhanced-table-row group cursor-pointer hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 dark:hover:from-blue-900/10 dark:hover:to-indigo-900/10 hover:shadow-sm transition-all duration-300"
                                         @click="$inertia.visit(taskRoutes.executions.index(task.id))"
                                     >
-                                        <TableCell class="font-medium">
+                                        <TableCell class="py-4 px-6">
                                             <div class="flex items-center gap-3">
-                                                <div class="h-2 w-2 rounded-full" :class="task.is_active ? 'bg-green-500' : 'bg-gray-400'"></div>
-                                                <span class="text-gray-900 dark:text-white">{{ task.name }}</span>
+                                                <div class="status-dot" :class="getStatusDotColor(task.is_active ? 'active' : 'inactive')"></div>
+                                                <div class="flex flex-col">
+                                                    <span class="font-semibold text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">{{ task.name }}</span>
+                                                    <span class="text-xs text-gray-500 dark:text-gray-400">ID: {{ task.id }}</span>
+                                                </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell class="max-w-xs text-sm text-gray-700 dark:text-gray-300">
-                                            <span class="block truncate">{{ task.description || '-' }}</span>
+                                        <TableCell class="py-4 px-6 max-w-xs">
+                                            <div class="text-sm text-gray-700 dark:text-gray-300">
+                                                <span class="block truncate" :title="task.description || 'No description'">{{ task.description || '-' }}</span>
+                                            </div>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell class="py-4 px-6">
                                             <span
                                                 v-if="task.dify_workflow"
-                                                class="inline-flex items-center gap-2 rounded-md bg-blue-50 px-2 py-1 font-mono text-sm text-blue-700 transition-colors hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                                                class="workflow-indicator cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-all duration-200"
                                                 @click.stop="$inertia.visit(difyWorkflowRoutes.edit(task.dify_workflow.id))"
                                             >
-                                                <div class="h-1.5 w-1.5 rounded-full bg-blue-500"></div>
+                                                <div class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse"></div>
                                                 {{ task.dify_workflow.name }}
                                             </span>
-                                            <span v-else class="text-sm text-gray-400">No workflow</span>
+                                            <span v-else class="text-sm text-gray-400 italic">No workflow assigned</span>
                                         </TableCell>
-                                        <TableCell>
-                                            <Badge :variant="task.is_active ? 'default' : 'secondary'" class="font-medium">
+                                        <TableCell class="py-4 px-6">
+                                            <Badge 
+                                                :variant="task.is_active ? 'default' : 'secondary'" 
+                                                class="font-medium shadow-sm hover:shadow-md transition-shadow"
+                                                :class="task.is_active ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' : ''"
+                                            >
                                                 {{ task.is_active ? 'Active' : 'Inactive' }}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell class="py-4 px-6">
                                             <Badge
                                                 v-if="task.executions && task.executions.length > 0"
                                                 :variant="getStatusVariant(task.executions[0].status)"
-                                                class="cursor-pointer font-medium transition-opacity hover:opacity-80"
+                                                class="cursor-pointer font-medium transition-all duration-200 hover:scale-105 shadow-sm"
                                                 @click.stop="$inertia.visit(taskRoutes.executions.show(task.id, task.executions[0].id))"
                                             >
+                                                <div class="status-dot mr-1" :class="getStatusDotColor(task.executions[0].status)"></div>
                                                 {{ task.executions[0].status }}
                                             </Badge>
-                                            <span v-else class="text-sm text-gray-400">No executions</span>
+                                            <div v-else class="flex items-center gap-2 text-sm text-gray-400">
+                                                <div class="h-1.5 w-1.5 rounded-full bg-gray-300"></div>
+                                                <span class="italic">No executions</span>
+                                            </div>
                                         </TableCell>
-                                        <TableCell class="text-right">
-                                            <div class="flex justify-end gap-1">
+                                        <TableCell class="py-4 px-6 text-right">
+                                            <div class="flex justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity duration-200">
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    class="transition-colors hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                                    class="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20 dark:hover:text-blue-300 transition-all duration-200 hover:scale-110"
                                                     @click.stop="$inertia.visit(taskRoutes.executions.index(task.id))"
                                                     title="View Executions"
                                                 >
@@ -131,16 +134,17 @@
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    class="transition-colors hover:bg-green-50 dark:hover:bg-green-900/20"
+                                                    class="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20 dark:hover:text-green-300 transition-all duration-200 hover:scale-110"
                                                     @click.stop="runTask(task)"
                                                     title="Run Task"
+                                                    :disabled="!task.is_active"
                                                 >
                                                     <Play class="h-4 w-4" />
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    class="transition-colors hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                                                    class="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-300 transition-all duration-200 hover:scale-110"
                                                     @click.stop="$inertia.visit(taskRoutes.edit(task.id))"
                                                     title="Edit Task"
                                                 >
@@ -149,7 +153,7 @@
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    class="transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
+                                                    class="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all duration-200 hover:scale-110"
                                                     @click.stop="deleteTask(task)"
                                                     title="Delete Task"
                                                 >
@@ -221,6 +225,26 @@ const getStatusVariant = (status: string) => {
             return 'destructive';
         default:
             return 'secondary';
+    }
+};
+
+// Enhanced status helper for colored dots
+const getStatusDotColor = (status: string) => {
+    switch (status) {
+        case 'completed':
+        case 'succeeded':
+        case 'active':
+            return 'bg-green-500';
+        case 'running':
+            return 'bg-blue-500 animate-pulse';
+        case 'failed':
+            return 'bg-red-500';
+        case 'pending':
+            return 'bg-yellow-500';
+        case 'inactive':
+            return 'bg-gray-400';
+        default:
+            return 'bg-gray-500';
     }
 };
 

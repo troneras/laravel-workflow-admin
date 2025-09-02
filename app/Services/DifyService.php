@@ -64,8 +64,20 @@ class DifyService
             // Handle API errors and update workflow status
             $errorMessage = 'Failed to run workflow. HTTP ' . $response->status();
             if ($response->status() >= 400 && $response->status() < 500) {
-                // Client errors (authentication, permissions, etc.)
-                $workflow->markAsError($errorMessage . ': ' . $response->body());
+                // Parse error response to determine if it's a workflow issue or input issue
+                $responseData = json_decode($response->body(), true);
+                $errorCode = $responseData['code'] ?? '';
+                
+                // Don't mark workflow as unhealthy for input validation errors
+                $inputValidationErrors = ['invalid_param', 'missing_param', 'validation_error'];
+                
+                if (!in_array($errorCode, $inputValidationErrors) && $response->status() !== 400) {
+                    // Only mark as error for authentication, permissions, workflow not found, etc.
+                    if (in_array($response->status(), [401, 403, 404, 422])) {
+                        $workflow->markAsError($errorMessage . ': ' . $response->body());
+                    }
+                }
+                // For input validation errors (400, invalid_param), don't affect workflow health
             }
 
             $responseBody = $response->body();
@@ -170,16 +182,39 @@ class DifyService
 
             // Handle API errors and update workflow status
             $errorMessage = 'Failed to run streaming workflow. HTTP ' . $response->status();
+            
+            // Only mark workflow as unhealthy for certain error types
             if ($response->status() >= 400 && $response->status() < 500) {
-                // Client errors (authentication, permissions, etc.)
-                $workflow->markAsError($errorMessage . ': ' . ($errorDetails ?: $responseBody));
+                // Parse error response to determine if it's a workflow issue or input issue
+                $responseData = json_decode($responseBody, true);
+                $errorCode = $responseData['code'] ?? '';
+                
+                // Don't mark workflow as unhealthy for input validation errors
+                $inputValidationErrors = ['invalid_param', 'missing_param', 'validation_error'];
+                
+                if (!in_array($errorCode, $inputValidationErrors) && $response->status() !== 400) {
+                    // Only mark as error for authentication, permissions, workflow not found, etc.
+                    // Skip 400 Bad Request which is typically input validation
+                    if (in_array($response->status(), [401, 403, 404, 422])) {
+                        $workflow->markAsError($errorMessage . ': ' . ($errorDetails ?: $responseBody));
+                    }
+                }
+                // For input validation errors (400, invalid_param), don't affect workflow health
             }
 
+            // Determine if this is an input validation error
+            $responseData = json_decode($responseBody, true);
+            $errorCode = $responseData['code'] ?? '';
+            $isInputValidationError = in_array($errorCode, ['invalid_param', 'missing_param', 'validation_error']) || $response->status() === 400;
+            
             Log::error('Dify API streaming workflow execution error', [
                 'workflow_id' => $workflow->workflow_id,
                 'workflow_name' => $workflow->name,
                 'execution_id' => $execution->id,
                 'http_status' => $response->status(),
+                'error_code' => $errorCode,
+                'is_input_validation_error' => $isInputValidationError,
+                'workflow_marked_unhealthy' => !$isInputValidationError && in_array($response->status(), [401, 403, 404, 422]),
                 'error_details' => $errorDetails,
                 'response_body' => substr($responseBody, 0, 500),
                 'api_endpoint' => $url,
@@ -297,8 +332,24 @@ class DifyService
                 $finishedData = $eventData['data'] ?? [];
                 $startTime = $execution->start_time ?: now();
                 
+                // Map Dify status to our database enum values
+                $difyStatus = $finishedData['status'] ?? 'succeeded';
+                $mappedStatus = match($difyStatus) {
+                    'succeeded' => 'completed',
+                    'failed' => 'failed',
+                    'stopped' => 'failed',
+                    default => 'completed',
+                };
+                
+                Log::debug('Workflow finished - status mapping', [
+                    'execution_id' => $execution->id,
+                    'dify_status' => $difyStatus,
+                    'mapped_status' => $mappedStatus,
+                    'total_tokens' => $finishedData['total_tokens'] ?? 0,
+                ]);
+                
                 $execution->update([
-                    'status' => $finishedData['status'] ?? 'completed',
+                    'status' => $mappedStatus,
                     'end_time' => now(),
                     'duration' => now()->diffInSeconds($startTime),
                     'output' => $finishedData['outputs'] ?? [],

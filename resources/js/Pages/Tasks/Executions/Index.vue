@@ -79,6 +79,7 @@
 
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -103,9 +104,18 @@ interface TaskExecution {
   tokens: number | null
 }
 
+interface TaskInputField {
+  name: string
+  type: string
+  required: boolean
+  default?: any
+}
+
 interface Task {
   id: number
   name: string
+  description?: string
+  input_schema?: TaskInputField[]
   is_active: boolean
 }
 
@@ -122,6 +132,62 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const runningExecutions = ref(new Set<number>())
+let pollingInterval: NodeJS.Timeout | null = null
+
+const checkRunningExecutions = () => {
+  props.executions.data.forEach(execution => {
+    if (execution.status === 'running' || execution.status === 'pending') {
+      runningExecutions.value.add(execution.id)
+    }
+  })
+}
+
+const pollExecutionStatus = async () => {
+  if (runningExecutions.value.size === 0) return
+
+  try {
+    const promises = Array.from(runningExecutions.value).map(async (executionId) => {
+      const statusUrl = taskRoutes.executions.status.url([props.task.id, executionId])
+      const response = await fetch(statusUrl)
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Find and update the execution in the list
+        const executionIndex = props.executions.data.findIndex(e => e.id === executionId)
+        if (executionIndex !== -1) {
+          props.executions.data[executionIndex] = {
+            ...props.executions.data[executionIndex],
+            ...data.execution
+          }
+          
+          // Remove from polling if completed or failed
+          if (data.execution.status === 'completed' || data.execution.status === 'failed') {
+            runningExecutions.value.delete(executionId)
+          }
+        }
+      }
+    })
+    
+    await Promise.all(promises)
+  } catch (error) {
+    console.error('Error polling execution status:', error)
+  }
+}
+
+onMounted(() => {
+  checkRunningExecutions()
+  if (runningExecutions.value.size > 0) {
+    pollingInterval = setInterval(pollExecutionStatus, 2000)
+  }
+})
+
+onUnmounted(() => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+  }
+})
 
 const formatDate = (date: string | null) => {
   if (!date) return '-'
@@ -142,6 +208,51 @@ const getStatusVariant = (status: string) => {
 }
 
 const runTask = () => {
-  router.post(taskRoutes.executions.store(props.task.id))
+  // Get input data based on task's input schema
+  let inputData: Record<string, any> = {}
+  
+  if (props.task.input_schema) {
+    if (Array.isArray(props.task.input_schema)) {
+      // Handle array format (proper schema definition)
+      for (const field of props.task.input_schema) {
+        if (field.name === 'question' && field.required) {
+          inputData[field.name] = field.default || props.task.description || 'What can you tell me about this?'
+        } else if (field.required) {
+          switch (field.type) {
+            case 'string':
+              inputData[field.name] = field.default || ''
+              break
+            case 'number':
+              inputData[field.name] = field.default || 0
+              break
+            default:
+              inputData[field.name] = field.default || null
+          }
+        }
+      }
+    } else if (typeof props.task.input_schema === 'object') {
+      // Handle object format (current database format)
+      inputData = { ...props.task.input_schema }
+    }
+  }
+  
+  // If no schema but we know this is a QA workflow, provide a question
+  if (Object.keys(inputData).length === 0) {
+    inputData.question = props.task.description || 'What can you tell me about this?'
+  }
+
+  router.post(taskRoutes.executions.store(props.task.id), {
+    input: inputData
+  }, {
+    onSuccess: () => {
+      // Start polling for new executions after successful task creation
+      setTimeout(() => {
+        checkRunningExecutions()
+        if (runningExecutions.value.size > 0 && !pollingInterval) {
+          pollingInterval = setInterval(pollExecutionStatus, 2000)
+        }
+      }, 1000)
+    }
+  })
 }
 </script>

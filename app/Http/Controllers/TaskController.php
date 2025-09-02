@@ -23,7 +23,9 @@ class TaskController extends Controller
 
     public function create(): Response
     {
-        $workflows = DifyWorkflow::healthy()->get();
+        // Show all active workflows, regardless of health status
+        // Users should be able to create tasks even if workflow is temporarily unhealthy
+        $workflows = DifyWorkflow::where('is_active', true)->get();
 
         return Inertia::render('Tasks/Create', [
             'workflows' => $workflows,
@@ -54,7 +56,9 @@ class TaskController extends Controller
 
     public function edit(Task $task): Response
     {
-        $workflows = DifyWorkflow::healthy()->get();
+        // Show all active workflows, regardless of health status
+        // Users should be able to edit tasks even if workflow is temporarily unhealthy
+        $workflows = DifyWorkflow::where('is_active', true)->get();
 
         return Inertia::render('Tasks/Edit', [
             'task' => $task->load('difyWorkflow'),

@@ -41,7 +41,7 @@
 
           <div class="space-y-2">
             <Label for="dify_workflow_id">Workflow</Label>
-            <Select v-model="form.dify_workflow_id">
+            <Select :model-value="form.dify_workflow_id" @update:model-value="form.dify_workflow_id = $event">
               <SelectTrigger>
                 <SelectValue placeholder="Select a workflow" />
               </SelectTrigger>

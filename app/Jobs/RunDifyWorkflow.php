@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Controllers\Api\WorkflowOrchestratorController;
 use App\Models\TaskExecution;
 use App\Services\DifyService;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -78,6 +79,9 @@ class RunDifyWorkflow implements ShouldQueue
                     'input_data' => $this->execution->input,
                 ]);
             }
+
+            // Send webhook if this is an API execution
+            $this->sendWebhookIfNeeded();
         } catch (\Exception $e) {
             Log::error('RunDifyWorkflow job failed', [
                 'execution_id' => $this->execution->id,
@@ -94,6 +98,30 @@ class RunDifyWorkflow implements ShouldQueue
                 'end_time' => now(),
                 'duration' => now()->diffInSeconds($this->execution->start_time),
                 'output' => ['error' => $e->getMessage()],
+            ]);
+
+            // Send webhook if this is an API execution (even on failure)
+            $this->sendWebhookIfNeeded();
+        }
+    }
+
+    /**
+     * Send webhook if this execution was initiated via API
+     */
+    protected function sendWebhookIfNeeded(): void
+    {
+        // Check if this is an API execution with webhook URL
+        if (!$this->execution->metadata || !isset($this->execution->metadata['api_execution'])) {
+            return;
+        }
+
+        try {
+            $orchestrator = new WorkflowOrchestratorController();
+            $orchestrator->handleWebhook($this->execution);
+        } catch (\Exception $e) {
+            Log::error('Failed to send webhook after execution completion', [
+                'execution_id' => $this->execution->id,
+                'error' => $e->getMessage(),
             ]);
         }
     }

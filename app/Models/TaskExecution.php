@@ -19,6 +19,7 @@ class TaskExecution extends Model
         'input',
         'output',
         'track',
+        'metadata',
     ];
 
     protected $casts = [
@@ -27,6 +28,7 @@ class TaskExecution extends Model
         'input' => 'array',
         'output' => 'array',
         'track' => 'array',
+        'metadata' => 'array',
     ];
 
     public function task(): BelongsTo

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'dify' => [
+        'base_url' => env('DIFY_BASE_URL', 'https://api.dify.ai'),
+        'api_key' => env('DIFY_API_KEY', ''),
+    ],
+
 ];

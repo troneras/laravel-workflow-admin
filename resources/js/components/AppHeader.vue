@@ -11,9 +11,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import { dashboard } from '@/routes';
+import tasks from '@/routes/tasks';
+import difyWorkflows from '@/routes/dify-workflows';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Menu, Search, ListTodo, Workflow } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -39,6 +41,16 @@ const mainNavItems: NavItem[] = [
         title: 'Dashboard',
         href: dashboard(),
         icon: LayoutGrid,
+    },
+    {
+        title: 'Workflows',
+        href: difyWorkflows.index(),
+        icon: Workflow,
+    },
+    {
+        title: 'Tasks',
+        href: tasks.index(),
+        icon: ListTodo,
     },
 ];
 

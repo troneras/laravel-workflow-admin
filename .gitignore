@@ -25,3 +25,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# PHPSTORM META
+.phpstorm.meta.php
+# IDE HELPER
+_ide_helper.php
+_ide_helper_models.php

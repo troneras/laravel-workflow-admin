@@ -1,4 +1,4 @@
-# Laravel Dify Integration
+# Laravel Dify Integration 
 
 A modern Laravel 12 application that integrates with Dify AI workflows, providing a complete task management system with real-time execution monitoring.
 
@@ -9,6 +9,8 @@ A modern Laravel 12 application that integrates with Dify AI workflows, providin
 - **Real-time Execution Monitoring**: Live updates on workflow execution progress
 - **Stream Event Tracking**: Capture and display detailed workflow execution events
 - **Health Monitoring**: Automatic workflow health checks with intelligent error classification
+- **REST API for Microservices**: External API for workflow execution with automatic task grouping
+- **Laravel Package**: Ready-to-use package for Laravel microservices integration
 - **Modern UI**: Built with Vue.js, TypeScript, and Shadcn-vue components
 - **Type-safe Routing**: Laravel Wayfinder integration for seamless backend-frontend communication
 
@@ -104,6 +106,8 @@ composer run test         # Run Pest tests
 ```
 ├── app/
 │   ├── Http/Controllers/     # Laravel controllers
+│   │   ├── Api/
+│   │   │   └── WorkflowOrchestratorController.php  # API for microservices
 │   │   ├── DifyWorkflowController.php
 │   │   ├── TaskController.php
 │   │   └── TaskExecutionController.php
@@ -117,6 +121,7 @@ composer run test         # Run Pest tests
 │   └── Jobs/               # Background jobs
 │       ├── RunDifyWorkflow.php
 │       └── CheckWorkflowHealth.php
+├── packages/casino/laravel-ai-orchestrator/  # Laravel package for clients
 ├── resources/js/
 │   ├── Pages/              # Inertia page components
 │   │   ├── DifyWorkflows/
@@ -227,6 +232,54 @@ php artisan test --filter=ExampleTest  # Specific test
 - **Reactive**: Vue 3 Composition API with TypeScript
 
 ## 📝 API Integration
+
+### External Microservice API
+
+The application provides a REST API for external microservices to execute workflows:
+
+#### Execute Workflow
+```bash
+POST /api/orchestrator/execute
+{
+    "workflow": "translate",              # Workflow name or ID
+    "task_group": "cms-translations",     # Optional: Group related executions
+    "inputs": {
+        "text": "Hello world",
+        "target_language": "spanish"
+    },
+    "context": {                          # Optional: Execution context
+        "service": "cms",
+        "operation": "bulk-translate",
+        "reference_id": "batch-001"
+    },
+    "webhook_url": "https://cms.example.com/webhook"  # Optional
+}
+```
+
+#### Query Executions
+```bash
+GET /api/orchestrator/executions?task_group=cms-translations&status=completed
+```
+
+#### Check Status
+```bash
+GET /api/orchestrator/executions/{execution_id}/status
+```
+
+#### Laravel Package
+For Laravel applications, use the [AI Orchestrator package](packages/casino/laravel-ai-orchestrator):
+```php
+use Casino\LaravelAiOrchestrator\Facades\AI;
+
+// Simple execution
+AI::translate("Hello world", "spanish");
+
+// With task grouping
+AI::execute('summarize', ['content' => $article], 'article-summaries');
+
+// Query executions
+$results = AI::executionsByTaskGroup('cms-translations');
+```
 
 ### Dify Workflow Execution
 The application integrates with Dify's streaming API:

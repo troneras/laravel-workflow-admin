@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DifyWorkflowController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskExecutionController;
@@ -10,9 +11,9 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::resource('dify-workflows', DifyWorkflowController::class)->except(['show'])->middleware(['auth', 'verified']);
 Route::post('dify-workflows/{difyWorkflow}/check-health', [DifyWorkflowController::class, 'checkHealth'])
@@ -22,10 +23,13 @@ Route::post('dify-workflows/{difyWorkflow}/check-health', [DifyWorkflowControlle
 Route::resource('tasks', TaskController::class)->middleware(['auth', 'verified']);
 Route::resource('tasks.executions', TaskExecutionController::class)->only(['index', 'store', 'show'])->middleware(['auth', 'verified']);
 
-// API endpoint for real-time execution status
-Route::get('api/tasks/{task}/executions/{execution}/status', [TaskExecutionController::class, 'status'])
-    ->middleware(['auth', 'verified'])
-    ->name('tasks.executions.status');
+// Removed: test-queue-metrics, real-time execution status, and queue metrics routes
+
+// Minimal API for dashboard (authenticated)
+Route::prefix('api')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard/metrics', [DashboardController::class, 'metrics'])
+        ->name('dashboard.metrics');
+});
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

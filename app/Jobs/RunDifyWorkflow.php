@@ -17,6 +17,11 @@ class RunDifyWorkflow implements ShouldQueue
         protected TaskExecution $execution
     ) {}
 
+    public function middleware()
+    {
+        return [];
+    }
+
     public function handle(DifyService $difyService): void
     {
         try {
@@ -28,21 +33,21 @@ class RunDifyWorkflow implements ShouldQueue
             $task = $this->execution->task->load('difyWorkflow');
             $workflow = $task->difyWorkflow;
 
-            if (!$workflow || !$workflow->is_active) {
+            if (! $workflow || ! $workflow->is_active) {
                 throw new \Exception('Workflow not found or inactive');
             }
 
             // Use streaming execution instead of blocking
             $result = $difyService->runWorkflowStreaming($workflow, $this->execution, [
                 'inputs' => $this->execution->input,
-                'user' => 'task-' . $task->id,
+                'user' => 'task-'.$task->id,
             ]);
 
             if ($result['success']) {
                 // Streaming execution updates the task execution in real-time
                 // Just log the successful completion
                 $this->execution->refresh(); // Get latest data
-                
+
                 Log::info('Streaming workflow execution completed successfully', [
                     'execution_id' => $this->execution->id,
                     'task_id' => $task->id,
@@ -56,10 +61,10 @@ class RunDifyWorkflow implements ShouldQueue
                 ]);
             } else {
                 // Handle streaming failure
-                $duration = $this->execution->start_time 
+                $duration = $this->execution->start_time
                     ? now()->diffInSeconds($this->execution->start_time)
                     : 0;
-                
+
                 $this->execution->update([
                     'status' => 'failed',
                     'end_time' => now(),
@@ -111,12 +116,12 @@ class RunDifyWorkflow implements ShouldQueue
     protected function sendWebhookIfNeeded(): void
     {
         // Check if this is an API execution with webhook URL
-        if (!$this->execution->metadata || !isset($this->execution->metadata['api_execution'])) {
+        if (! $this->execution->metadata || ! isset($this->execution->metadata['api_execution'])) {
             return;
         }
 
         try {
-            $orchestrator = new WorkflowOrchestratorController();
+            $orchestrator = new WorkflowOrchestratorController;
             $orchestrator->handleWebhook($this->execution);
         } catch (\Exception $e) {
             Log::error('Failed to send webhook after execution completion', [

@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { appearance } from '@/routes';
 import { edit as editPassword } from '@/routes/password';
 import { edit } from '@/routes/profile';
+import { system } from '@/routes/settings';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 
@@ -20,6 +21,10 @@ const sidebarNavItems: NavItem[] = [
     {
         title: 'Appearance',
         href: appearance(),
+    },
+    {
+        title: 'System',
+        href: system(),
     },
 ];
 

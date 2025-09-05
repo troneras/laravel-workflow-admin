@@ -114,6 +114,18 @@ case "$1" in
         echo "Running tests..."
         docker-compose exec app php artisan test
         ;;
+
+    "cache"|"clear-cache")
+        print_header
+        echo "Clearing Laravel caches..."
+        docker-compose exec app sh -c "\
+            php artisan optimize:clear --no-interaction && \
+            php artisan cache:clear --no-interaction && \
+            php artisan config:clear --no-interaction && \
+            php artisan route:clear --no-interaction && \
+            php artisan view:clear --no-interaction\
+        " && print_success "Laravel caches cleared!" || print_error "Failed to clear caches"
+        ;;
         
     "fresh")
         print_header
@@ -131,6 +143,14 @@ case "$1" in
         print_success "Docker environment cleaned!"
         ;;
         
+    "redis-clear"|"flush-redis")
+        print_header
+        echo "Flushing Redis data..."
+        docker-compose exec redis sh -c "redis-cli FLUSHALL" \
+            && print_success "Redis FLUSHALL executed" \
+            || print_error "Failed to flush Redis"
+        ;;
+
     "status")
         print_header
         docker-compose ps
@@ -138,7 +158,7 @@ case "$1" in
         
     *)
         print_header
-        echo "Usage: $0 {up|down|restart|build|logs|shell|artisan|composer|npm|test|fresh|clean|status}"
+        echo "Usage: $0 {up|down|restart|build|logs|shell|artisan|composer|npm|test|fresh|clean|redis-clear|status}"
         echo
         echo "Commands:"
         echo "  up/start    - Start the development environment"
@@ -151,6 +171,8 @@ case "$1" in
         echo "  composer    - Run Composer commands"
         echo "  npm         - Run NPM commands"
         echo "  test        - Run Laravel tests"
+        echo "  cache       - Clear Laravel caches (optimize, app, config, route, view)"
+        echo "  redis-clear - Flush all Redis data (FLUSHALL)"
         echo "  fresh       - Reset database and run seeders"
         echo "  clean       - Clean up Docker environment"
         echo "  status      - Show container status"

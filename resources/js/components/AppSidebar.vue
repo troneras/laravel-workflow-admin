@@ -8,7 +8,7 @@ import difyWorkflows from '@/routes/dify-workflows';
 import tasks from '@/routes/tasks';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, ListTodo, Workflow } from 'lucide-vue-next';
+import { Activity, BookOpen, Folder, LayoutGrid, ListTodo, Workflow } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -26,6 +26,11 @@ const mainNavItems: NavItem[] = [
         title: 'Tasks',
         href: tasks.index(),
         icon: ListTodo,
+    },
+    {
+        title: 'Queue Monitor',
+        href: '/horizon',
+        icon: Activity,
     },
 ];
 

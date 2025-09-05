@@ -219,7 +219,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Dashboard" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex h-full flex-1 flex-col gap-4 p-4">
+        <div class="grid gap-4">
             <!-- Controls -->
             <div class="flex items-center justify-end gap-2">
                 <label class="text-sm text-muted-foreground">Period</label>

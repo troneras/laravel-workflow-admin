@@ -32,11 +32,11 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 </script>
 
 <template>
-    <div class="px-4 py-6">
+    <div class="grid gap-6">
         <Heading title="Settings" description="Manage your profile and account settings" />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
-            <aside class="w-full max-w-xl lg:w-48">
+            <aside class="w-full max-w-xl lg:w-56">
                 <nav class="flex flex-col space-y-1 space-x-0">
                     <Button
                         v-for="item in sidebarNavItems"
@@ -57,8 +57,8 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 
             <Separator class="my-6 lg:hidden" />
 
-            <div class="flex-1 md:max-w-2xl">
-                <section class="max-w-xl space-y-12">
+            <div class="flex-1">
+                <section class="space-y-12">
                     <slot />
                 </section>
             </div>

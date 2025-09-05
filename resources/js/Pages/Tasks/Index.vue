@@ -2,8 +2,7 @@
     <Head title="Tasks" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-            <div class="container mx-auto max-w-7xl py-8">
+        <div class="container mx-auto max-w-7xl py-8">
                 <!-- Enhanced Header Section -->
                 <div
                     class="page-header"
@@ -168,7 +167,6 @@
                     </CardContent>
                 </Card>
             </div>
-        </div>
     </AppLayout>
 </template>
 

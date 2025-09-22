@@ -123,15 +123,20 @@ services:
   node:
     build:
       context: .
-      dockerfile: Dockerfile.node-php
+      dockerfile: Dockerfile
     container_name: laravel-node
     working_dir: /var/www/html
+    user: root
+    command: ["sh", "-c", "npm install && chown -R www-data:www-data node_modules package-lock.json 2>/dev/null || true && php artisan wayfinder:generate --with-form && npm run dev -- --host 0.0.0.0"]
     volumes:
       - .:/var/www/html
     ports:
       - "5173:5173"
     networks:
       - laravel-network
+    depends_on:
+      app:
+        condition: service_healthy
 
 networks:
   laravel-network:

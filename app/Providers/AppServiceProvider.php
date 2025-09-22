@@ -20,6 +20,18 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Set dynamic job timeout from settings
+        try {
+            $settingsService = $this->app->make(SettingsService::class);
+            $timeout = $settingsService->getJobTimeout();
+
+            // Set environment variable for Horizon config
+            if (!env('QUEUE_JOB_TIMEOUT')) {
+                config(['horizon.defaults.supervisor-1.timeout' => $timeout]);
+            }
+        } catch (\Exception $e) {
+            // Fallback to default timeout if settings not available
+            config(['horizon.defaults.supervisor-1.timeout' => 14400]);
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Http\Controllers\Api\WorkflowOrchestratorController;
 use App\Models\TaskExecution;
 use App\Services\DifyService;
+use App\Services\SettingsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -13,9 +14,19 @@ class RunDifyWorkflow implements ShouldQueue
 {
     use Queueable;
 
+    public $timeout;
+
     public function __construct(
         protected TaskExecution $execution
-    ) {}
+    ) {
+        // Set timeout from settings
+        try {
+            $settingsService = app(SettingsService::class);
+            $this->timeout = $settingsService->getJobTimeout();
+        } catch (\Exception $e) {
+            $this->timeout = 14400; // Fallback to 4 hours
+        }
+    }
 
     public function middleware()
     {

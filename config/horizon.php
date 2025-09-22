@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Str;
+use App\Services\SettingsService;
 
 return [
 
@@ -190,7 +191,7 @@ return [
             'maxJobs' => 0,
             'memory' => 128,
             'tries' => 1,
-            'timeout' => 60,
+            'timeout' => env('QUEUE_JOB_TIMEOUT', 14400),
             'nice' => 0,
         ],
     ],

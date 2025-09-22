@@ -81,6 +81,22 @@ class SettingsService
     {
         Cache::flush();
     }
+
+    /**
+     * Get job timeout in seconds
+     */
+    public function getJobTimeout(): int
+    {
+        return $this->get('queue', 'job_timeout_seconds', 14400); // Default 4 hours
+    }
+
+    /**
+     * Set job timeout in seconds
+     */
+    public function setJobTimeout(int $seconds): void
+    {
+        $this->set('queue', 'job_timeout_seconds', $seconds, 'integer', 'Job execution timeout in seconds');
+    }
     
     protected function castValue($value, $type)
     {

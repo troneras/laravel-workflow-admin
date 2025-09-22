@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\DifyWorkflow;
 use App\Services\DifyService;
+use App\Services\SettingsService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 class CheckWorkflowHealth implements ShouldQueue
 {
     use Queueable;
+
+    public $timeout = 300; // 5 minutes for health checks
 
     public function __construct(
         public ?DifyWorkflow $workflow = null,

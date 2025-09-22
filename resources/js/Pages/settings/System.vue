@@ -13,6 +13,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 
 interface QueueSettings {
+    job_timeout_seconds: number;
     dify_max_jobs_per_minute: number;
     dify_max_concurrent_jobs: number;
     dify_retry_after_seconds: number;
@@ -28,6 +29,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const form = useForm({
+    job_timeout_seconds: props.queueSettings.job_timeout_seconds || 14400,
     dify_max_jobs_per_minute: props.queueSettings.dify_max_jobs_per_minute,
     dify_max_concurrent_jobs: props.queueSettings.dify_max_concurrent_jobs,
     dify_retry_after_seconds: props.queueSettings.dify_retry_after_seconds,
@@ -37,6 +39,16 @@ const submit = () => {
     form.post('/settings/system/queue', {
         preserveScroll: true,
     });
+};
+
+const formatDuration = (seconds: number) => {
+    if (seconds < 3600) {
+        return `${Math.floor(seconds / 60)} minutes`;
+    } else if (seconds < 86400) {
+        return `${Math.floor(seconds / 3600)} hours`;
+    } else {
+        return `${Math.floor(seconds / 86400)} days`;
+    }
 };
 
 const breadcrumbItems: BreadcrumbItem[] = [
@@ -68,6 +80,54 @@ const breadcrumbItems: BreadcrumbItem[] = [
                     <CardContent>
                         <form @submit.prevent="submit" class="space-y-4">
                             <div class="grid gap-4">
+                                <div class="space-y-2">
+                                    <Label for="job_timeout_seconds">Job Timeout (seconds)</Label>
+                                    <Input
+                                        id="job_timeout_seconds"
+                                        v-model="form.job_timeout_seconds"
+                                        type="number"
+                                        min="60"
+                                        max="86400"
+                                        step="60"
+                                        :disabled="form.processing"
+                                    />
+                                    <p class="text-sm text-muted-foreground">
+                                        Maximum execution time for jobs. Current: {{ formatDuration(form.job_timeout_seconds) }}
+                                    </p>
+                                    <div class="flex gap-2 mt-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="form.job_timeout_seconds = 3600"
+                                            :disabled="form.processing"
+                                        >
+                                            1 hour
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="form.job_timeout_seconds = 14400"
+                                            :disabled="form.processing"
+                                        >
+                                            4 hours
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            @click="form.job_timeout_seconds = 28800"
+                                            :disabled="form.processing"
+                                        >
+                                            8 hours
+                                        </Button>
+                                    </div>
+                                    <div v-if="form.errors.job_timeout_seconds" class="text-sm text-destructive">
+                                        {{ form.errors.job_timeout_seconds }}
+                                    </div>
+                                </div>
+
                                 <div class="space-y-2">
                                     <Label for="max_jobs_per_minute">Max Jobs Per Minute</Label>
                                     <Input 

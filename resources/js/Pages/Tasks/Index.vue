@@ -26,7 +26,7 @@
                             </div>
                             <div class="page-actions">
                                 <Button
-                                    @click="$inertia.visit(taskRoutes.create())"
+                                    @click="openCreateModal"
                                     class="btn-gradient shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                                 >
                                     <Plus class="mr-2 h-4 w-4" /> Create New Task
@@ -68,7 +68,7 @@
                                         v-for="task in tasks"
                                         :key="task.id"
                                         class="enhanced-table-row group cursor-pointer hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 dark:hover:from-blue-900/10 dark:hover:to-indigo-900/10 hover:shadow-sm transition-all duration-300"
-                                        @click="$inertia.visit(taskRoutes.executions.index(task.id))"
+                                        @click="$inertia.visit(taskRoutes.show(task.id))"
                                     >
                                         <TableCell class="py-4 px-6">
                                             <div class="flex items-center gap-3">
@@ -104,12 +104,12 @@
                                                 {{ task.is_active ? 'Active' : 'Inactive' }}
                                             </Badge>
                                         </TableCell>
-                                        <TableCell class="py-4 px-6">
+                                        <TableCell class="py-4 px-6" @click.stop>
                                             <Badge
                                                 v-if="task.executions && task.executions.length > 0"
                                                 :variant="getStatusVariant(task.executions[0].status)"
                                                 class="cursor-pointer font-medium transition-all duration-200 hover:scale-105 shadow-sm"
-                                                @click.stop="$inertia.visit(taskRoutes.executions.show(task.id, task.executions[0].id))"
+                                                @click="$inertia.visit(taskRoutes.executions.show(task.id, task.executions[0].id))"
                                             >
                                                 <div class="status-dot mr-1" :class="getStatusDotColor(task.executions[0].status)"></div>
                                                 {{ task.executions[0].status }}
@@ -143,15 +143,6 @@
                                                 <Button
                                                     variant="ghost"
                                                     size="sm"
-                                                    class="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-300 transition-all duration-200 hover:scale-110"
-                                                    @click.stop="$inertia.visit(taskRoutes.edit(task.id))"
-                                                    title="Edit Task"
-                                                >
-                                                    <Edit class="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
                                                     class="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20 dark:hover:text-red-300 transition-all duration-200 hover:scale-110"
                                                     @click.stop="deleteTask(task)"
                                                     title="Delete Task"
@@ -167,6 +158,174 @@
                     </CardContent>
                 </Card>
             </div>
+
+        <!-- Create Modal -->
+        <Dialog v-model:open="isCreateModalOpen">
+            <DialogContent class="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Create Task</DialogTitle>
+                    <DialogDescription>
+                        Create a new task to run Dify workflows
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="submitCreate" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="create-name">Name</Label>
+                        <Input
+                            id="create-name"
+                            v-model="createForm.name"
+                            placeholder="Enter task name"
+                            :class="{ 'border-red-500': createForm.errors.name }"
+                            required
+                        />
+                        <p v-if="createForm.errors.name" class="text-sm text-red-600">
+                            {{ createForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-description">Description</Label>
+                        <Textarea
+                            id="create-description"
+                            v-model="createForm.description"
+                            placeholder="Enter task description (optional)"
+                            :class="{ 'border-red-500': createForm.errors.description }"
+                            rows="3"
+                        />
+                        <p v-if="createForm.errors.description" class="text-sm text-red-600">
+                            {{ createForm.errors.description }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-workflow">Workflow</Label>
+                        <Select :model-value="createForm.dify_workflow_id" @update:model-value="createForm.dify_workflow_id = $event">
+                            <SelectTrigger :class="{ 'border-red-500': createForm.errors.dify_workflow_id }">
+                                <SelectValue placeholder="Select a workflow" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="workflow in workflows" :key="workflow.id" :value="workflow.id.toString()">
+                                    {{ workflow.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p v-if="createForm.errors.dify_workflow_id" class="text-sm text-red-600">
+                            {{ createForm.errors.dify_workflow_id }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-input-schema">Input Schema (JSON)</Label>
+                        <Textarea
+                            id="create-input-schema"
+                            v-model="createInputSchemaJson"
+                            placeholder='{"key": "value"}'
+                            rows="4"
+                            :class="{ 'border-red-500': createForm.errors.input_schema || createJsonError }"
+                        />
+                        <p v-if="createJsonError" class="text-sm text-red-600">
+                            {{ createJsonError }}
+                        </p>
+                        <p v-if="createForm.errors.input_schema" class="text-sm text-red-600">
+                            {{ createForm.errors.input_schema }}
+                        </p>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isCreateModalOpen = false">
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="createForm.processing">
+                            Create Task
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Edit Modal -->
+        <Dialog v-model:open="isEditModalOpen">
+            <DialogContent class="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                    <DialogDescription>
+                        Update the task details
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="submitEdit" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="edit-name">Name</Label>
+                        <Input
+                            id="edit-name"
+                            v-model="editForm.name"
+                            placeholder="Enter task name"
+                            :class="{ 'border-red-500': editForm.errors.name }"
+                            required
+                        />
+                        <p v-if="editForm.errors.name" class="text-sm text-red-600">
+                            {{ editForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-description">Description</Label>
+                        <Textarea
+                            id="edit-description"
+                            v-model="editForm.description"
+                            placeholder="Enter task description (optional)"
+                            :class="{ 'border-red-500': editForm.errors.description }"
+                            rows="3"
+                        />
+                        <p v-if="editForm.errors.description" class="text-sm text-red-600">
+                            {{ editForm.errors.description }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-workflow">Workflow</Label>
+                        <Select :model-value="editForm.dify_workflow_id" @update:model-value="editForm.dify_workflow_id = $event">
+                            <SelectTrigger :class="{ 'border-red-500': editForm.errors.dify_workflow_id }">
+                                <SelectValue placeholder="Select a workflow" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="workflow in workflows" :key="workflow.id" :value="workflow.id.toString()">
+                                    {{ workflow.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p v-if="editForm.errors.dify_workflow_id" class="text-sm text-red-600">
+                            {{ editForm.errors.dify_workflow_id }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-input-schema">Input Schema (JSON)</Label>
+                        <Textarea
+                            id="edit-input-schema"
+                            v-model="editInputSchemaJson"
+                            placeholder='{"key": "value"}'
+                            rows="4"
+                            :class="{ 'border-red-500': editForm.errors.input_schema || editJsonError }"
+                        />
+                        <p v-if="editJsonError" class="text-sm text-red-600">
+                            {{ editJsonError }}
+                        </p>
+                        <p v-if="editForm.errors.input_schema" class="text-sm text-red-600">
+                            {{ editForm.errors.input_schema }}
+                        </p>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isEditModalOpen = false">
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="editForm.processing">
+                            Update Task
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -174,13 +333,19 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import difyWorkflowRoutes from '@/routes/dify-workflows';
 import taskRoutes from '@/routes/tasks';
 import type { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
-import { Edit, History, Play, Plus, Trash2 } from 'lucide-vue-next';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { History, Play, Plus, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 interface DifyWorkflow {
     id: number;
@@ -202,9 +367,132 @@ interface Task {
 
 interface Props {
     tasks: Task[];
+    workflows?: DifyWorkflow[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+// Modal state
+const isCreateModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const editingTask = ref<Task | null>(null);
+
+// Form handling
+const createForm = useForm({
+    name: '',
+    description: '',
+    dify_workflow_id: '',
+    input_schema: null as any,
+});
+
+const editForm = useForm({
+    name: '',
+    description: '',
+    dify_workflow_id: '',
+    input_schema: null as any,
+});
+
+// JSON handling
+const createInputSchemaJson = ref('');
+const createJsonError = ref('');
+const editInputSchemaJson = ref('');
+const editJsonError = ref('');
+
+watch(createInputSchemaJson, (value) => {
+    if (!value) {
+        createForm.input_schema = null;
+        createJsonError.value = '';
+        return;
+    }
+    try {
+        createForm.input_schema = JSON.parse(value);
+        createJsonError.value = '';
+    } catch {
+        createJsonError.value = 'Invalid JSON format';
+    }
+});
+
+watch(editInputSchemaJson, (value) => {
+    if (!value) {
+        editForm.input_schema = null;
+        editJsonError.value = '';
+        return;
+    }
+    try {
+        editForm.input_schema = JSON.parse(value);
+        editJsonError.value = '';
+    } catch {
+        editJsonError.value = 'Invalid JSON format';
+    }
+});
+
+// Modal handlers
+const openCreateModal = () => {
+    // First fetch workflows if not available
+    if (!props.workflows) {
+        router.get(taskRoutes.create(), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['workflows'],
+            onSuccess: () => {
+                createForm.reset();
+                createForm.clearErrors();
+                createInputSchemaJson.value = '';
+                isCreateModalOpen.value = true;
+            }
+        });
+    } else {
+        createForm.reset();
+        createForm.clearErrors();
+        createInputSchemaJson.value = '';
+        isCreateModalOpen.value = true;
+    }
+};
+
+const openEditModal = (task: Task) => {
+    // First fetch task details with workflows
+    router.get(taskRoutes.edit(task.id), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['task', 'workflows'],
+        onSuccess: (page: any) => {
+            const taskData = page.props.task || task;
+            editingTask.value = taskData;
+            editForm.reset();
+            editForm.clearErrors();
+            editForm.name = taskData.name;
+            editForm.description = taskData.description || '';
+            editForm.dify_workflow_id = taskData.dify_workflow_id?.toString() || '';
+            editInputSchemaJson.value = taskData.input_schema ? JSON.stringify(taskData.input_schema, null, 2) : '';
+            isEditModalOpen.value = true;
+        }
+    });
+};
+
+const submitCreate = () => {
+    createForm.post(taskRoutes.store(), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isCreateModalOpen.value = false;
+            createForm.reset();
+            createInputSchemaJson.value = '';
+        },
+    });
+};
+
+const submitEdit = () => {
+    if (!editingTask.value) return;
+    
+    editForm.put(taskRoutes.update(editingTask.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isEditModalOpen.value = false;
+            editForm.reset();
+            editInputSchemaJson.value = '';
+            editingTask.value = null;
+        },
+    });
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

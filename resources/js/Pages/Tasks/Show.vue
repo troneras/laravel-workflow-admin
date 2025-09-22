@@ -2,8 +2,7 @@
     <Head title="Task Details" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-            <div class="container mx-auto max-w-7xl py-8">
+        <div class="container mx-auto max-w-7xl py-8">
                 <!-- Enhanced Header Section -->
                 <div
                     class="relative mb-8 overflow-hidden rounded-2xl border border-white/20 bg-white shadow-xl dark:border-slate-700/50 dark:bg-slate-800"
@@ -48,7 +47,7 @@
                                 <Button
                                     variant="outline"
                                     class="transition-colors hover:bg-gray-50 dark:hover:bg-slate-700"
-                                    @click="$inertia.visit(taskRoutes.edit(task.id))"
+                                    @click="openEditModal"
                                 >
                                     Edit Task
                                 </Button>
@@ -234,7 +233,90 @@
                     </Card>
                 </div>
             </div>
-        </div>
+
+        <!-- Edit Modal -->
+        <Dialog v-model:open="isEditModalOpen">
+            <DialogContent class="sm:max-w-[500px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                    <DialogDescription>
+                        Update the task details
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="submitEdit" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="edit-name">Name</Label>
+                        <Input
+                            id="edit-name"
+                            v-model="editForm.name"
+                            placeholder="Enter task name"
+                            :class="{ 'border-red-500': editForm.errors.name }"
+                            required
+                        />
+                        <p v-if="editForm.errors.name" class="text-sm text-red-600">
+                            {{ editForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-description">Description</Label>
+                        <Textarea
+                            id="edit-description"
+                            v-model="editForm.description"
+                            placeholder="Enter task description (optional)"
+                            :class="{ 'border-red-500': editForm.errors.description }"
+                            rows="3"
+                        />
+                        <p v-if="editForm.errors.description" class="text-sm text-red-600">
+                            {{ editForm.errors.description }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-workflow">Workflow</Label>
+                        <Select :model-value="editForm.dify_workflow_id" @update:model-value="editForm.dify_workflow_id = $event">
+                            <SelectTrigger :class="{ 'border-red-500': editForm.errors.dify_workflow_id }">
+                                <SelectValue placeholder="Select a workflow" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="workflow in workflows" :key="workflow.id" :value="workflow.id.toString()">
+                                    {{ workflow.name }}
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <p v-if="editForm.errors.dify_workflow_id" class="text-sm text-red-600">
+                            {{ editForm.errors.dify_workflow_id }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-input-schema">Input Schema (JSON)</Label>
+                        <Textarea
+                            id="edit-input-schema"
+                            v-model="editInputSchemaJson"
+                            placeholder='{"key": "value"}'
+                            rows="4"
+                            :class="{ 'border-red-500': editForm.errors.input_schema || editJsonError }"
+                        />
+                        <p v-if="editJsonError" class="text-sm text-red-600">
+                            {{ editJsonError }}
+                        </p>
+                        <p v-if="editForm.errors.input_schema" class="text-sm text-red-600">
+                            {{ editForm.errors.input_schema }}
+                        </p>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isEditModalOpen = false">
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="editForm.processing">
+                            Update Task
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -242,11 +324,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import taskRoutes from '@/routes/tasks';
 import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 interface TaskExecution {
     id: number;
@@ -277,7 +365,63 @@ interface Task {
 
 const props = defineProps<{
     task: Task;
+    workflows?: DifyWorkflow[];
 }>();
+
+// Modal state
+const isEditModalOpen = ref(false);
+
+// Form handling
+const editForm = useForm({
+    name: props.task.name,
+    description: props.task.description || '',
+    dify_workflow_id: props.task.dify_workflow_id?.toString() || '',
+    input_schema: props.task.input_schema || null,
+});
+
+// JSON handling
+const editInputSchemaJson = ref(props.task.input_schema ? JSON.stringify(props.task.input_schema, null, 2) : '');
+const editJsonError = ref('');
+
+watch(editInputSchemaJson, (value) => {
+    if (!value) {
+        editForm.input_schema = null;
+        editJsonError.value = '';
+        return;
+    }
+    try {
+        editForm.input_schema = JSON.parse(value);
+        editJsonError.value = '';
+    } catch {
+        editJsonError.value = 'Invalid JSON format';
+    }
+});
+
+// Modal handlers
+const openEditModal = () => {
+    // First fetch workflows if not available
+    if (!props.workflows) {
+        router.get(taskRoutes.edit(props.task.id), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['workflows'],
+            onSuccess: () => {
+                isEditModalOpen.value = true;
+            }
+        });
+    } else {
+        isEditModalOpen.value = true;
+    }
+};
+
+const submitEdit = () => {
+    editForm.put(taskRoutes.update(props.task.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isEditModalOpen.value = false;
+        },
+    });
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

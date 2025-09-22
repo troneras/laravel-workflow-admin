@@ -16,8 +16,11 @@ class TaskController extends Controller
             $query->latest()->limit(1);
         }])->latest()->get();
 
+        $workflows = DifyWorkflow::where('is_active', true)->get();
+
         return Inertia::render('Tasks/Index', [
             'tasks' => $tasks,
+            'workflows' => $workflows,
         ]);
     }
 
@@ -49,8 +52,11 @@ class TaskController extends Controller
 
     public function show(Task $task): Response
     {
+        $workflows = DifyWorkflow::where('is_active', true)->get();
+        
         return Inertia::render('Tasks/Show', [
             'task' => $task->load(['difyWorkflow', 'executions']),
+            'workflows' => $workflows,
         ]);
     }
 

@@ -24,7 +24,7 @@
                         </div>
                         <div class="page-actions">
                             <Button
-                                @click="$inertia.visit(difyWorkflows.create())"
+                                @click="openCreateModal"
                                 class="btn-gradient shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                             >
                                 <Plus class="mr-2 h-4 w-4" /> Add Workflow
@@ -66,7 +66,7 @@
                                     v-for="workflow in workflows"
                                     :key="workflow.id"
                                     class="enhanced-table-row group cursor-pointer hover:bg-gradient-to-r hover:from-blue-50/30 hover:to-indigo-50/30 dark:hover:from-blue-900/10 dark:hover:to-indigo-900/10 hover:shadow-sm transition-all duration-300"
-                                    @click="$inertia.visit(difyWorkflows.edit(workflow.id))">
+                                    @click="openEditModal(workflow)">
                                     <TableCell class="py-4 px-6">
                                         <div class="flex items-center gap-3">
                                             <div class="status-dot" :class="getStatusDotColor(workflow.is_active ? 'active' : 'inactive')"></div>
@@ -105,7 +105,7 @@
                                                 variant="ghost"
                                                 size="sm"
                                                 class="h-8 w-8 p-0 hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-900/20 dark:hover:text-amber-300 transition-all duration-200 hover:scale-110"
-                                                @click.stop="$inertia.visit(difyWorkflows.edit(workflow.id))"
+                                                @click.stop="openEditModal(workflow)"
                                                 title="Edit Workflow"
                                             >
                                                 <Edit class="h-4 w-4" />
@@ -129,6 +129,156 @@
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Create Modal -->
+        <Dialog v-model:open="isCreateModalOpen">
+            <DialogContent class="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Create Dify Workflow</DialogTitle>
+                    <DialogDescription>
+                        Create a new Dify workflow to process tasks
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="submitCreate" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="create-name">Name</Label>
+                        <Input
+                            id="create-name"
+                            v-model="createForm.name"
+                            :class="{ 'border-red-500': createForm.errors.name }"
+                            required
+                        />
+                        <p v-if="createForm.errors.name" class="text-sm text-red-600">
+                            {{ createForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-description">Description</Label>
+                        <Textarea
+                            id="create-description"
+                            v-model="createForm.description"
+                            :class="{ 'border-red-500': createForm.errors.description }"
+                            rows="3"
+                        />
+                        <p v-if="createForm.errors.description" class="text-sm text-red-600">
+                            {{ createForm.errors.description }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-workflow_id">Workflow ID</Label>
+                        <Input
+                            id="create-workflow_id"
+                            v-model="createForm.workflow_id"
+                            :class="{ 'border-red-500': createForm.errors.workflow_id }"
+                            required
+                        />
+                        <p v-if="createForm.errors.workflow_id" class="text-sm text-red-600">
+                            {{ createForm.errors.workflow_id }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="create-api_key">API Key</Label>
+                        <Input
+                            id="create-api_key"
+                            v-model="createForm.api_key"
+                            type="password"
+                            :class="{ 'border-red-500': createForm.errors.api_key }"
+                            required
+                        />
+                        <p v-if="createForm.errors.api_key" class="text-sm text-red-600">
+                            {{ createForm.errors.api_key }}
+                        </p>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isCreateModalOpen = false">
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="createForm.processing">
+                            Create Workflow
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Edit Modal -->
+        <Dialog v-model:open="isEditModalOpen">
+            <DialogContent class="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Dify Workflow</DialogTitle>
+                    <DialogDescription>
+                        Update the workflow details
+                    </DialogDescription>
+                </DialogHeader>
+                <form @submit.prevent="submitEdit" class="space-y-4">
+                    <div class="space-y-2">
+                        <Label for="edit-name">Name</Label>
+                        <Input
+                            id="edit-name"
+                            v-model="editForm.name"
+                            :class="{ 'border-red-500': editForm.errors.name }"
+                            required
+                        />
+                        <p v-if="editForm.errors.name" class="text-sm text-red-600">
+                            {{ editForm.errors.name }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-description">Description</Label>
+                        <Textarea
+                            id="edit-description"
+                            v-model="editForm.description"
+                            :class="{ 'border-red-500': editForm.errors.description }"
+                            rows="3"
+                        />
+                        <p v-if="editForm.errors.description" class="text-sm text-red-600">
+                            {{ editForm.errors.description }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-workflow_id">Workflow ID</Label>
+                        <Input
+                            id="edit-workflow_id"
+                            v-model="editForm.workflow_id"
+                            :class="{ 'border-red-500': editForm.errors.workflow_id }"
+                            required
+                        />
+                        <p v-if="editForm.errors.workflow_id" class="text-sm text-red-600">
+                            {{ editForm.errors.workflow_id }}
+                        </p>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label for="edit-api_key">API Key</Label>
+                        <Input
+                            id="edit-api_key"
+                            v-model="editForm.api_key"
+                            type="password"
+                            placeholder="Leave blank to keep current key"
+                            :class="{ 'border-red-500': editForm.errors.api_key }"
+                        />
+                        <p v-if="editForm.errors.api_key" class="text-sm text-red-600">
+                            {{ editForm.errors.api_key }}
+                        </p>
+                    </div>
+
+                    <DialogFooter>
+                        <Button type="button" variant="outline" @click="isEditModalOpen = false">
+                            Cancel
+                        </Button>
+                        <Button type="submit" :disabled="editForm.processing">
+                            Update Workflow
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -136,12 +286,17 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import difyWorkflows from '@/routes/dify-workflows';
 import type { BreadcrumbItem } from '@/types';
-import { Head, router } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { Edit, Plus, Trash2 } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface DifyWorkflow {
     id: number;
@@ -157,6 +312,66 @@ interface Props {
 }
 
 defineProps<Props>();
+
+// Modal state
+const isCreateModalOpen = ref(false);
+const isEditModalOpen = ref(false);
+const editingWorkflow = ref<DifyWorkflow | null>(null);
+
+// Form handling
+const createForm = useForm({
+    name: '',
+    description: '',
+    workflow_id: '',
+    api_key: '',
+});
+
+const editForm = useForm({
+    name: '',
+    description: '',
+    workflow_id: '',
+    api_key: '',
+});
+
+// Modal handlers
+const openCreateModal = () => {
+    createForm.reset();
+    createForm.clearErrors();
+    isCreateModalOpen.value = true;
+};
+
+const openEditModal = (workflow: DifyWorkflow) => {
+    editingWorkflow.value = workflow;
+    editForm.reset();
+    editForm.clearErrors();
+    editForm.name = workflow.name;
+    editForm.description = workflow.description || '';
+    editForm.workflow_id = workflow.workflow_id;
+    isEditModalOpen.value = true;
+};
+
+const submitCreate = () => {
+    createForm.post(difyWorkflows.store(), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isCreateModalOpen.value = false;
+            createForm.reset();
+        },
+    });
+};
+
+const submitEdit = () => {
+    if (!editingWorkflow.value) return;
+    
+    editForm.put(difyWorkflows.update(editingWorkflow.value.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            isEditModalOpen.value = false;
+            editForm.reset();
+            editingWorkflow.value = null;
+        },
+    });
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

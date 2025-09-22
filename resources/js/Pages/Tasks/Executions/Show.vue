@@ -2,8 +2,7 @@
     <Head title="Execution Details" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-            <div class="container mx-auto max-w-7xl py-8">
+        <div class="container mx-auto max-w-7xl py-8">
                 <!-- Enhanced Header Section -->
                 <div
                     class="relative mb-8 overflow-hidden rounded-2xl border border-white/20 bg-white shadow-xl dark:border-slate-700/50 dark:bg-slate-800"
@@ -542,7 +541,6 @@
                     </Card>
                 </div>
             </div>
-        </div>
     </AppLayout>
 </template>
 

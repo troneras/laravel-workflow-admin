@@ -144,6 +144,149 @@
                         </CardContent>
                     </Card>
 
+                    <!-- API Execution Metadata Card -->
+                    <Card
+                        v-if="currentExecution.metadata && currentExecution.metadata.api_execution"
+                        class="relative overflow-hidden border-0 bg-white shadow-xl ring-1 ring-gray-100 dark:bg-slate-800 dark:ring-slate-700"
+                    >
+                        <div
+                            class="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-yellow-50/20 to-amber-50/30 dark:from-orange-900/20 dark:via-yellow-900/15 dark:to-amber-900/20"
+                        ></div>
+                        <CardHeader class="relative pb-6">
+                            <CardTitle class="flex items-center gap-3 text-xl font-semibold">
+                                <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-600">
+                                    <svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                API Execution Details
+                            </CardTitle>
+                            <p class="text-muted-foreground">Information about this API-initiated execution and webhook delivery</p>
+                        </CardHeader>
+                        <CardContent class="relative">
+                            <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                <!-- API Metadata -->
+                                <div class="space-y-4">
+                                    <h3 class="text-lg font-semibold">Execution Context</h3>
+                                    <div class="space-y-3">
+                                        <div v-if="currentExecution.metadata.service_name" class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Service:</span>
+                                            <Badge variant="outline">{{ currentExecution.metadata.service_name }}</Badge>
+                                        </div>
+                                        <div v-if="currentExecution.metadata.operation" class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Operation:</span>
+                                            <Badge variant="outline">{{ currentExecution.metadata.operation }}</Badge>
+                                        </div>
+                                        <div v-if="currentExecution.metadata.reference_id" class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Reference ID:</span>
+                                            <code class="rounded bg-muted px-2 py-1 text-xs">{{ currentExecution.metadata.reference_id }}</code>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Created via:</span>
+                                            <Badge variant="secondary">{{ currentExecution.metadata.created_via || 'API' }}</Badge>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Webhook Information -->
+                                <div class="space-y-4">
+                                    <div class="flex items-center justify-between">
+                                        <h3 class="text-lg font-semibold">Webhook Status</h3>
+                                        <Button
+                                            v-if="webhookStatus.has_webhook && webhookStatus.is_retryable"
+                                            size="sm"
+                                            variant="outline"
+                                            @click="resendWebhook"
+                                            :disabled="resendingWebhook"
+                                        >
+                                            {{ resendingWebhook ? 'Sending...' : 'Resend Webhook' }}
+                                        </Button>
+                                    </div>
+
+                                    <div v-if="webhookStatus.has_webhook" class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">URL:</span>
+                                            <code class="rounded bg-muted px-2 py-1 text-xs max-w-64 truncate">{{ webhookStatus.webhook_url }}</code>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Attempts:</span>
+                                            <div class="flex items-center gap-2">
+                                                <Badge :variant="webhookStatus.successful_attempts > 0 ? 'default' : 'destructive'">
+                                                    {{ webhookStatus.total_attempts }} total
+                                                </Badge>
+                                                <span class="text-xs text-muted-foreground">
+                                                    ({{ webhookStatus.successful_attempts }} success, {{ webhookStatus.failed_attempts }} failed)
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div v-if="webhookStatus.last_attempt" class="flex items-center justify-between">
+                                            <span class="text-sm font-medium text-muted-foreground">Last Status:</span>
+                                            <div class="flex items-center gap-2">
+                                                <Badge
+                                                    :variant="webhookStatus.last_attempt.status === 'success' ? 'default' : 'destructive'"
+                                                >
+                                                    {{ webhookStatus.last_attempt.status }}
+                                                </Badge>
+                                                <span v-if="webhookStatus.last_attempt.http_status" class="text-xs text-muted-foreground">
+                                                    HTTP {{ webhookStatus.last_attempt.http_status }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div v-else class="text-sm text-muted-foreground">
+                                        No webhook configured for this execution.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Webhook Attempts History -->
+                            <div v-if="webhookStatus.has_webhook && webhookAttempts.length > 0" class="mt-6">
+                                <Collapsible>
+                                    <CollapsibleTrigger asChild>
+                                        <Button variant="ghost" class="w-full justify-start">
+                                            <ChevronRightIcon class="mr-2 h-4 w-4" />
+                                            View Webhook Attempt History ({{ webhookAttempts.length }})
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent class="mt-4">
+                                        <div class="space-y-4">
+                                            <div
+                                                v-for="attempt in webhookAttempts"
+                                                :key="attempt.id"
+                                                class="rounded-lg border border-gray-200 p-4 dark:border-gray-700"
+                                            >
+                                                <div class="flex items-center justify-between mb-2">
+                                                    <div class="flex items-center gap-2">
+                                                        <Badge :variant="attempt.status === 'success' ? 'default' : 'destructive'">
+                                                            Attempt #{{ attempt.attempt_number }}
+                                                        </Badge>
+                                                        <span class="text-sm text-muted-foreground">
+                                                            {{ formatDate(attempt.attempted_at) }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="flex items-center gap-2">
+                                                        <span v-if="attempt.http_status" class="text-sm">
+                                                            HTTP {{ attempt.http_status }}
+                                                        </span>
+                                                        <span v-if="attempt.response_time_ms" class="text-xs text-muted-foreground">
+                                                            {{ Math.round(attempt.response_time_ms) }}ms
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div v-if="attempt.error_message" class="text-sm text-red-600 dark:text-red-400">
+                                                    {{ attempt.error_message }}
+                                                </div>
+                                                <div v-if="attempt.response_body && attempt.response_body.length < 200" class="text-xs text-muted-foreground mt-2">
+                                                    Response: {{ attempt.response_body }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            </div>
+                        </CardContent>
+                    </Card>
+
                     <!-- Enhanced Input Data Card -->
                     <Card
                         v-if="currentExecution.input && Object.keys(currentExecution.input).length > 0"
@@ -582,10 +725,34 @@ interface StreamEvent {
     event_data: any;
 }
 
+interface WebhookAttempt {
+    id: number;
+    attempt_number: number;
+    status: string;
+    http_status: number | null;
+    response_time_ms: number | null;
+    attempted_at: string;
+    error_message: string | null;
+    response_body: string | null;
+}
+
+interface WebhookStatus {
+    has_webhook: boolean;
+    webhook_url: string | null;
+    total_attempts: number;
+    successful_attempts: number;
+    failed_attempts: number;
+    last_attempt: WebhookAttempt | null;
+    last_status: string | null;
+    is_retryable: boolean;
+}
+
 interface Props {
     task: Task;
     execution: TaskExecution;
     streamEvents?: Record<string, StreamEvent[]>;
+    webhookStatus: WebhookStatus;
+    webhookAttempts: WebhookAttempt[];
 }
 
 const props = defineProps<Props>();
@@ -611,6 +778,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const currentExecution = ref(props.execution);
 const currentStreamEvents = ref(props.streamEvents || {});
+const resendingWebhook = ref(false);
 let pollingInterval: NodeJS.Timeout | null = null;
 
 const pollExecutionStatus = async () => {
@@ -847,6 +1015,39 @@ const copyToClipboard = async (text: string) => {
         console.log('Copied to clipboard');
     } catch (err) {
         console.error('Failed to copy: ', err);
+    }
+};
+
+// Resend webhook functionality
+const resendWebhook = async () => {
+    if (resendingWebhook.value) return;
+
+    resendingWebhook.value = true;
+
+    try {
+        const response = await fetch(`/tasks/${props.task.id}/executions/${props.execution.id}/resend-webhook`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            },
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            console.log('Webhook resent successfully');
+            // Refresh the page to see the new webhook attempt
+            window.location.reload();
+        } else {
+            console.error('Failed to resend webhook:', data.message);
+            alert('Failed to resend webhook: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Error resending webhook:', error);
+        alert('An error occurred while resending the webhook');
+    } finally {
+        resendingWebhook.value = false;
     }
 };
 </script>

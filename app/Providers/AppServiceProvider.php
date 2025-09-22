@@ -13,6 +13,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(SettingsService::class);
+        $this->app->bind(\App\Services\WebhookService::class);
     }
 
     /**

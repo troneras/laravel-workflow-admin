@@ -7,6 +7,7 @@ use App\Jobs\RunDifyWorkflow;
 use App\Models\DifyWorkflow;
 use App\Models\Task;
 use App\Models\TaskExecution;
+use App\Services\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
@@ -365,40 +366,8 @@ class WorkflowOrchestratorController extends Controller
      */
     public function handleWebhook(TaskExecution $execution): void
     {
-        $webhookUrl = $execution->metadata['webhook_url'] ?? null;
-        
-        if (!$webhookUrl) {
-            return;
-        }
-
-        $payload = [
-            'execution_id' => $execution->id,
-            'task_execution_id' => $execution->task_execution_id,
-            'status' => $execution->status,
-            'output' => $execution->output,
-            'duration' => $execution->duration,
-            'tokens' => $execution->tokens,
-            'service_name' => $execution->metadata['service_name'] ?? null,
-            'reference_id' => $execution->metadata['reference_id'] ?? null,
-            'completed_at' => $execution->end_time,
-        ];
-
-        try {
-            $response = Http::timeout(30)
-                ->post($webhookUrl, $payload);
-
-            Log::info('Webhook sent successfully', [
-                'execution_id' => $execution->id,
-                'webhook_url' => $webhookUrl,
-                'response_status' => $response->status(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Webhook failed', [
-                'execution_id' => $execution->id,
-                'webhook_url' => $webhookUrl,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $webhookService = app(WebhookService::class);
+        $webhookService->sendWebhook($execution);
     }
 
     /**

@@ -6,6 +6,7 @@ use App\Jobs\RunDifyWorkflow;
 use App\Jobs\CheckWorkflowHealth;
 use App\Models\Task;
 use App\Models\TaskExecution;
+use App\Services\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -71,13 +72,19 @@ class TaskExecutionController extends Controller
 
     public function show(Task $task, TaskExecution $execution): Response
     {
+        $webhookService = app(WebhookService::class);
+
         return Inertia::render('Tasks/Executions/Show', [
             'task' => $task,
-            'execution' => $execution->load('streamEvents'),
+            'execution' => $execution->load(['streamEvents', 'webhookAttempts']),
             'streamEvents' => $execution->streamEvents()
                 ->orderBy('event_timestamp')
                 ->get()
                 ->groupBy('event_type'),
+            'webhookStatus' => $webhookService->getWebhookStatus($execution),
+            'webhookAttempts' => $execution->webhookAttempts()
+                ->orderBy('attempted_at', 'desc')
+                ->get(),
         ]);
     }
 
@@ -144,6 +151,46 @@ class TaskExecutionController extends Controller
                 return 'Output: ' . substr($text, 0, 50) . (strlen($text) > 50 ? '...' : '');
             default:
                 return ucfirst(str_replace('_', ' ', $event->event_type));
+        }
+    }
+
+    /**
+     * Resend webhook for an execution
+     */
+    public function resendWebhook(Task $task, TaskExecution $execution)
+    {
+        if (!$execution->hasWebhookUrl()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This execution does not have a webhook URL configured.',
+            ], 400);
+        }
+
+        try {
+            $webhookService = app(WebhookService::class);
+            $attempt = $webhookService->retryWebhook($execution);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Webhook resent successfully.',
+                'attempt' => [
+                    'id' => $attempt->id,
+                    'attempt_number' => $attempt->attempt_number,
+                    'status' => $attempt->status,
+                    'http_status' => $attempt->http_status,
+                    'attempted_at' => $attempt->attempted_at,
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to resend webhook', [
+                'execution_id' => $execution->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to resend webhook: ' . $e->getMessage(),
+            ], 500);
         }
     }
 }

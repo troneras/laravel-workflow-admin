@@ -40,4 +40,29 @@ class TaskExecution extends Model
     {
         return $this->hasMany(WorkflowStreamEvent::class);
     }
+
+    public function webhookAttempts(): HasMany
+    {
+        return $this->hasMany(WebhookAttempt::class);
+    }
+
+    public function isApiExecution(): bool
+    {
+        return isset($this->metadata['api_execution']) && $this->metadata['api_execution'] === true;
+    }
+
+    public function hasWebhookUrl(): bool
+    {
+        return !empty($this->metadata['webhook_url']);
+    }
+
+    public function getWebhookUrl(): ?string
+    {
+        return $this->metadata['webhook_url'] ?? null;
+    }
+
+    public function getLatestWebhookAttempt(): ?WebhookAttempt
+    {
+        return $this->webhookAttempts()->latest('attempted_at')->first();
+    }
 }

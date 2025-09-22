@@ -22,6 +22,9 @@ Route::post('dify-workflows/{difyWorkflow}/check-health', [DifyWorkflowControlle
 
 Route::resource('tasks', TaskController::class)->middleware(['auth', 'verified']);
 Route::resource('tasks.executions', TaskExecutionController::class)->only(['index', 'store', 'show'])->middleware(['auth', 'verified']);
+Route::post('tasks/{task}/executions/{execution}/resend-webhook', [TaskExecutionController::class, 'resendWebhook'])
+    ->middleware(['auth', 'verified'])
+    ->name('tasks.executions.resend-webhook');
 
 // Removed: test-queue-metrics, real-time execution status, and queue metrics routes
 

@@ -38,15 +38,36 @@ case "$1" in
         # Start services
         docker-compose up -d
         
-        # Wait a moment for services to initialize
-        sleep 3
+        # Wait for services to be ready
+        echo "Waiting for services to be ready..."
+        sleep 5
+        
+        # Wait for app service to be ready
+        for i in {1..30}; do
+            if docker-compose exec app php --version >/dev/null 2>&1; then
+                break
+            fi
+            echo "Waiting for app service... ($i/30)"
+            sleep 2
+        done
+        
+        # Install PHP dependencies
+        echo "Installing PHP dependencies..."
+        docker-compose exec app composer install --no-interaction
+        
+        # Set up environment file
+        echo "Setting up environment..."
+        docker-compose exec --user root app sh -c "
+            cp -n .env.example .env 2>/dev/null || true &&
+            chown www-data:www-data .env &&
+            chmod 664 .env
+        "
         
         # Initialize Laravel application
         echo "Initializing Laravel application..."
-        docker-compose exec app sh -c "
-            php artisan key:generate --ansi --no-interaction &&
-            php artisan migrate --force --no-interaction
-        " || {
+        docker-compose exec app php artisan key:generate --ansi --no-interaction
+        docker-compose exec --user root app php artisan storage:link --no-interaction
+        docker-compose exec app php artisan migrate --force --no-interaction || {
             print_error "Failed to initialize Laravel application"
             print_warning "Try running: ./docker-dev.sh logs app"
             exit 1

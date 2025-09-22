@@ -52,9 +52,14 @@ class DifyWorkflowController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'workflow_id' => 'required|string|unique:dify_workflows,workflow_id,' . $difyWorkflow->id,
-            'api_key' => 'required|string',
+            'api_key' => 'nullable|string',
             'is_active' => 'boolean',
         ]);
+
+        // Only update api_key if a new value is provided
+        if (empty($validated['api_key'])) {
+            unset($validated['api_key']);
+        }
 
         $difyWorkflow->update($validated);
 

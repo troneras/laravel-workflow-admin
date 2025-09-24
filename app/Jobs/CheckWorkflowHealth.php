@@ -27,8 +27,8 @@ class CheckWorkflowHealth implements ShouldQueue
             'timestamp' => now()->toDateTimeString(),
         ]);
 
-        $workflows = $this->workflow 
-            ? [$this->workflow]
+        $workflows = $this->workflow
+            ? collect([$this->workflow])
             : DifyWorkflow::where('is_active', true)
                 ->when(!$this->force, function ($query) {
                     $query->where(function ($query) {
@@ -39,7 +39,7 @@ class CheckWorkflowHealth implements ShouldQueue
                 ->get();
 
         Log::info('Found workflows to check', [
-            'count' => count($workflows),
+            'count' => $workflows->count(),
             'workflow_ids' => $workflows->pluck('id')->toArray(),
         ]);
 

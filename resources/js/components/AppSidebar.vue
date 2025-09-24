@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
+import NavTool from '@/components/NavTool.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import difyWorkflows from '@/routes/dify-workflows';
 import tasks from '@/routes/tasks';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
-import { Activity, BookOpen, Folder, LayoutGrid, ListTodo, Workflow } from 'lucide-vue-next';
+import { type AppPageProps, type NavItem } from '@/types';
+import { openDifyPopup } from '@/utils/popup';
+import { Link, usePage } from '@inertiajs/vue3';
+import { Activity, BookOpen, Folder, LayoutGrid, ListTodo, MonitorSpeaker, Workflow } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+
+const page = usePage<AppPageProps>();
 
 const mainNavItems: NavItem[] = [
     {
@@ -27,10 +31,18 @@ const mainNavItems: NavItem[] = [
         href: tasks.index(),
         icon: ListTodo,
     },
+];
+
+const toolItems = [
     {
         title: 'Queue Monitor',
         href: '/horizon',
         icon: Activity,
+    },
+    {
+        title: 'Dify Interface',
+        icon: MonitorSpeaker,
+        onClick: () => openDifyPopup(page.props.settings.difyUrl),
     },
 ];
 
@@ -64,6 +76,7 @@ const footerNavItems: NavItem[] = [
 
         <SidebarContent>
             <NavMain :items="mainNavItems" />
+            <NavTool :items="toolItems" />
         </SidebarContent>
 
         <SidebarFooter>

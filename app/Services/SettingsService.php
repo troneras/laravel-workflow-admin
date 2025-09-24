@@ -97,6 +97,22 @@ class SettingsService
     {
         $this->set('queue', 'job_timeout_seconds', $seconds, 'integer', 'Job execution timeout in seconds');
     }
+
+    /**
+     * Get Dify interface URL
+     */
+    public function getDifyUrl(): string
+    {
+        return $this->get('integrations', 'dify_url', 'http://localhost/apps');
+    }
+
+    /**
+     * Set Dify interface URL
+     */
+    public function setDifyUrl(string $url): void
+    {
+        $this->set('integrations', 'dify_url', $url, 'string', 'URL for Dify visual AI orchestration interface');
+    }
     
     protected function castValue($value, $type)
     {

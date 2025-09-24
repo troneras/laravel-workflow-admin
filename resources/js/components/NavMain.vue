@@ -3,8 +3,9 @@ import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, Sideba
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 
-defineProps<{
+const props = defineProps<{
     items: NavItem[];
+    groupLabel?: string;
 }>();
 
 const page = usePage();
@@ -12,7 +13,7 @@ const page = usePage();
 
 <template>
     <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel class="text-gray-900 dark:text-white font-semibold uppercase tracking-wide text-xs mb-2">Platform</SidebarGroupLabel>
+        <SidebarGroupLabel class="text-gray-900 dark:text-white font-semibold uppercase tracking-wide text-xs mb-2">{{ props.groupLabel || 'Platform' }}</SidebarGroupLabel>
         <SidebarMenu class="space-y-1">
             <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton as-child :is-active="item.href === page.url" :tooltip="item.title" class="transition-all duration-200">
